@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComfyUI Model Dashboard</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2a3140;
+    --fg:#e6edf3; --muted:#8b949e; --accent:#3fb950; --accent2:#58a6ff;
+    --warn:#d29922; --danger:#f85149; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:"Noto Sans Thai","Segoe UI",Inter,system-ui,sans-serif;font-size:14px;line-height:1.55}
+  a{color:var(--accent2);text-decoration:none} a:hover{text-decoration:underline}
+  header{position:sticky;top:0;z-index:20;background:rgba(13,17,23,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 18px;
+    display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .logo{font-weight:700;font-size:16px;letter-spacing:.3px}
+  .logo span{color:var(--accent)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    padding:4px 12px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .chip b{color:var(--fg);font-weight:600}
+  .chip.link{color:var(--accent2);cursor:pointer}
+  main{max-width:1180px;margin:0 auto;padding:18px}
+  nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  nav button{background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px;font-family:inherit}
+  nav button.on{background:var(--accent2);border-color:var(--accent2);color:#08121f;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:15px}
+  .card .hint{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px}
+  input,select,textarea{width:100%;background:#0b0f16;border:1px solid var(--line);
+    color:var(--fg);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13.5px}
+  input:focus,select:focus{outline:none;border-color:var(--accent2)}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:190px}
+  button.btn{background:var(--accent2);color:#08121f;border:0;border-radius:8px;
+    padding:10px 18px;font-weight:600;cursor:pointer;font-family:inherit;font-size:13.5px}
+  button.btn:hover{filter:brightness(1.1)}
+  button.btn:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+  button.mini{padding:5px 12px;font-size:12px;border-radius:6px}
+  button.danger{background:var(--danger);color:#fff}
+  .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+  .msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;display:none}
+  .msg.err{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);color:#ffb4ae;display:block}
+  .msg.ok{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.4);color:#7ee787;display:block}
+  .msg.info{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.35);color:#a5d0ff;display:block}
+  .preview{display:flex;gap:16px;margin-top:16px;padding:14px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px}
+  .preview img{width:104px;height:104px;object-fit:cover;border-radius:8px;flex:0 0 auto}
+  .preview .meta{flex:1;min-width:0}
+  .preview .meta h3{margin:0 0 3px;font-size:14.5px;word-break:break-word}
+  .preview .meta p{margin:0;color:var(--muted);font-size:12.5px}
+  .tags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .tag{background:#0b0f16;border:1px solid var(--line);border-radius:6px;
+    padding:2px 8px;font-size:11.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  td.num{text-align:right;white-space:nowrap;color:var(--muted)}
+  .bar{height:6px;background:#0b0f16;border-radius:999px;overflow:hidden;margin-top:5px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+    transition:width .4s ease}
+  .st{font-size:11.5px;padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .st.downloading{background:rgba(88,166,255,.15);color:var(--accent2)}
+  .st.queued{background:rgba(139,148,158,.15);color:var(--muted)}
+  .st.done{background:rgba(63,185,80,.15);color:var(--accent)}
+  .st.error{background:rgba(248,81,73,.15);color:var(--danger)}
+  .st.canceled{background:rgba(210,153,34,.15);color:var(--warn)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(285px,1fr))}
+  .item{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;
+    display:flex;flex-direction:column;gap:6px}
+  .item h4{margin:0;font-size:13.5px;word-break:break-word}
+  .item p{margin:0;color:var(--muted);font-size:12px;flex:1}
+  .item .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+  .badge{font-size:11px;color:var(--accent);border:1px solid rgba(63,185,80,.4);
+    border-radius:6px;padding:1px 7px}
+  .star{border-color:var(--accent);box-shadow:0 0 0 1px rgba(63,185,80,.25)}
+  pre.log{background:#080c12;border:1px solid var(--line);border-radius:8px;padding:12px;
+    max-height:440px;overflow:auto;font-size:11.5px;line-height:1.5;white-space:pre-wrap;
+    font-family:"JetBrains Mono",Consolas,monospace;color:#c9d1d9}
+  .empty{color:var(--muted);text-align:center;padding:26px;font-size:13px}
+  .sep{height:1px;background:var(--line);margin:16px 0}
+  .k{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .k>div:first-child{flex:1;min-width:230px}
+  .hide{display:none}
+  @media(max-width:640px){ main{padding:12px} .card{padding:14px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Comfy<span>Hub</span> · Model Dashboard</div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <nav>
+    <button class="on" data-tab="dl">⬇ ดาวน์โหลดจากลิงก์</button>
+    <button data-tab="catalog">⭐ Krea 2 / โมเดลแนะนำ</button>
+    <button data-tab="files">📁 ไฟล์ในเครื่อง</button>
+    <button data-tab="keys">🔑 API Keys</button>
+    <button data-tab="sys">🖥 ระบบ &amp; Log</button>
+  </nav>
+
+  <!-- ============================ DOWNLOAD ============================ -->
+  <section id="tab-dl">
+    <div class="card">
+      <h2>วางลิงก์แล้วกดโหลด</h2>
+      <p class="hint">
+        รองรับ Civitai (หน้าโมเดล / ลิงก์ดาวน์โหลด / urn:air) · Hugging Face (หน้า repo หรือลิงก์ไฟล์ หรือพิมพ์แค่ <code>org/repo</code>) · ลิงก์ตรง http(s)
+      </p>
+      <label for="url">ลิงก์โมเดล / LoRA</label>
+      <input id="url" placeholder="https://civitai.com/models/1234?modelVersionId=5678  หรือ  Comfy-Org/Krea-2" autocomplete="off">
+      <div class="actions">
+        <button class="btn" id="btnResolve">ตรวจสอบลิงก์</button>
+        <span class="hint" style="margin:0">กด Enter ก็ได้</span>
+      </div>
+      <div class="msg" id="dlMsg"></div>
+
+      <div id="resolved" class="hide">
+        <div class="preview">
+          <img id="rvImg" class="hide" alt="">
+          <div class="meta">
+            <h3 id="rvTitle"></h3>
+            <p id="rvSub"></p>
+            <div class="tags" id="rvTags"></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="rvFile">ไฟล์ที่จะโหลด</label>
+            <select id="rvFile"></select>
+          </div>
+          <div>
+            <label for="rvFolder">บันทึกลงโฟลเดอร์</label>
+            <select id="rvFolder"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="rvName">ตั้งชื่อไฟล์</label>
+            <input id="rvName">
+          </div>
+          <div style="flex:0 0 auto;min-width:auto;display:flex;align-items:flex-end;padding-bottom:2px">
+            <label style="display:flex;gap:7px;align-items:center;margin:0;cursor:pointer">
+              <input type="checkbox" id="rvOverwrite" style="width:auto">โหลดทับไฟล์เดิม
+            </label>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btnDownload">เริ่มดาวน์โหลด</button>
+          <button class="btn ghost" id="btnAllFiles">โหลดทุกไฟล์ในรายการ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>คิวดาวน์โหลด</h2>
+      <p class="hint">อัปเดตอัตโนมัติทุกวินาที · ปิดหน้านี้ได้ การโหลดยังทำงานต่อบนเซิร์ฟเวอร์</p>
+      <div id="jobs"><div class="empty">ยังไม่มีงานดาวน์โหลด</div></div>
+      <div class="actions">
+        <button class="btn ghost mini" id="btnClearJobs">ล้างรายการที่จบแล้ว</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CATALOG ============================ -->
+  <section id="tab-catalog" class="hide">
+    <div class="card">
+      <h2>ชุดพร้อมใช้ (กดครั้งเดียวได้ครบ)</h2>
+      <p class="hint">โหลดจาก Hugging Face repo <a href="https://huggingface.co/Comfy-Org/Krea-2" target="_blank" rel="noopener">Comfy-Org/Krea-2</a> · ไม่ต้องใช้ token</p>
+      <div class="grid" id="quick"></div>
+    </div>
+    <div id="groups"></div>
+  </section>
+
+  <!-- ============================ FILES ============================ -->
+  <section id="tab-files" class="hide">
+    <div class="card">
+      <h2>โมเดลที่มีอยู่</h2>
+      <p class="hint" id="filesHint"></p>
+      <div class="row">
+        <div>
+          <label for="fFolder">กรองตามโฟลเดอร์</label>
+          <select id="fFolder"><option value="">ทั้งหมด</option></select>
+        </div>
+        <div>
+          <label for="fSearch">ค้นหาชื่อไฟล์</label>
+          <input id="fSearch" placeholder="พิมพ์บางส่วนของชื่อไฟล์">
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div id="filesTable"></div>
+    </div>
+  </section>
+
+  <!-- ============================ KEYS ============================ -->
+  <section id="tab-keys" class="hide">
+    <div class="card">
+      <h2>Civitai API Key</h2>
+      <p class="hint">สร้างที่ <a href="https://civitai.com/user/account" target="_blank" rel="noopener">civitai.com → Account → API Keys</a> · จำเป็นสำหรับโมเดลส่วนใหญ่</p>
+      <div class="k">
+        <div><input id="kCivitai" type="password" placeholder="วาง API key ที่นี่" autocomplete="off"></div>
+        <button class="btn" data-save="civitai">บันทึก</button>
+        <button class="btn ghost" data-test="civitai">ทดสอบ</button>
+      </div>
+      <div class="msg" id="kCivitaiMsg"></div>
+    </div>
+    <div class="card">
+      <h2>Hugging Face Token</h2>
+      <p class="hint">สร้างที่ <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co → Settings → Access Tokens</a> (สิทธิ์ read พอ) · จำเป็นเฉพาะ repo ที่ gated/private</p>
+      <div class="k">
+        <div><input id="kHuggingface" type="password" placeholder="hf_..." autocomplete="off"></div>
+        <button class="btn" data-save="huggingface">บันทึก</button>
+        <button class="btn ghost" data-test="huggingface">ทดสอบ</button>
+      </div>
+      <div class="msg" id="kHuggingfaceMsg"></div>
+    </div>
+    <div class="card">
+      <h2 style="font-size:14px">คีย์ถูกเก็บไว้ที่ไหน</h2>
+      <p class="hint" style="margin:0">
+        เก็บเป็นไฟล์ <code>$DATA_DIR/.config/modelhub/keys.json</code> สิทธิ์ 600 อยู่บนดิสก์ของ instance เท่านั้น
+        ไม่ถูกส่งไปที่อื่นนอกจาก Civitai / Hugging Face ตอนดาวน์โหลด · ลบทิ้งได้โดยบันทึกค่าว่าง
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================ SYSTEM ============================ -->
+  <section id="tab-sys" class="hide">
+    <div class="card">
+      <h2>สถานะเครื่อง</h2>
+      <div id="sysInfo"></div>
+      <div class="actions">
+        <button class="btn ghost mini" id="btnRestartComfy">รีสตาร์ท ComfyUI</button>
+        <button class="btn ghost mini" id="btnRestartJup">รีสตาร์ท JupyterLab</button>
+        <span class="hint" style="margin:0">รีสตาร์ท ComfyUI หลังติดตั้ง custom node ใหม่</span>
+      </div>
+      <div class="msg" id="sysMsg"></div>
+    </div>
+    <div class="card">
+      <h2>Log</h2>
+      <div class="row">
+        <div>
+          <label for="logPick">เลือก service</label>
+          <select id="logPick">
+            <option value="comfyui">comfyui</option>
+            <option value="dashboard">dashboard</option>
+            <option value="jupyter">jupyter</option>
+            <option value="provisioning">provisioning</option>
+            <option value="supervisord">supervisord</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn ghost" id="btnLog">โหลด log ล่าสุด</button>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <pre class="log" id="logBox">(กดปุ่มเพื่อโหลด)</pre>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+let STATE = null, RESOLVED = null;
+
+async function api(path, opts) {
+  const res = await fetch(path, Object.assign({
+    headers: {'Content-Type': 'application/json'}, credentials: 'same-origin'
+  }, opts || {}));
+  if (res.status === 401) { location.href = '/login'; throw new Error('unauthorized'); }
+  const text = await res.text();
+  let data; try { data = text ? JSON.parse(text) : {}; } catch (e) { data = {raw: text}; }
+  if (!res.ok) throw new Error(data.detail || data.raw || ('HTTP ' + res.status));
+  return data;
+}
+const post = (p, b) => api(p, {method: 'POST', body: JSON.stringify(b || {})});
+function show(el, kind, text) {
+  const n = typeof el === 'string' ? $(el) : el;
+  n.className = 'msg ' + kind; n.textContent = text;
+  if (kind === 'ok') setTimeout(() => { n.className = 'msg'; }, 6000);
+}
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------------- tabs ---------------- */
+$$('nav button').forEach(b => b.onclick = () => {
+  $$('nav button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  $$('main > section').forEach(s => s.classList.add('hide'));
+  $('#tab-' + b.dataset.tab).classList.remove('hide');
+  if (b.dataset.tab === 'files') loadFiles();
+  if (b.dataset.tab === 'catalog') loadCatalog();
+  if (b.dataset.tab === 'sys') renderSys();
+});
+
+/* ---------------- state / header ---------------- */
+async function loadState() {
+  STATE = await api('/api/state');
+  const d = STATE.disk, g = STATE.gpus[0];
+  const chips = [];
+  if (g) chips.push(`<span class="chip">🎮 <b>${esc(g.name)}</b> ${esc(g.vram_used)}/${esc(g.vram_total)} · ${esc(g.util)}</span>`);
+  chips.push(`<span class="chip">💾 ว่าง <b>${esc(d.free_h)}</b> / ${esc(d.total_h)}</span>`);
+  if (STATE.urls.comfyui) chips.push(`<a class="chip link" href="${esc(STATE.urls.comfyui)}" target="_blank" rel="noopener">↗ ComfyUI</a>`);
+  if (STATE.urls.jupyter) chips.push(`<a class="chip link" href="${esc(STATE.urls.jupyter)}" target="_blank" rel="noopener">↗ JupyterLab</a>`);
+  $('#chips').innerHTML = chips.join('');
+
+  const opts = STATE.folders.map(f => `<option value="${f.id}">${esc(f.id)} — ${esc(f.label)}</option>`).join('');
+  $('#rvFolder').innerHTML = opts;
+  $('#fFolder').innerHTML = '<option value="">ทั้งหมด</option>' + opts;
+  $('#kCivitai').placeholder = STATE.keys.civitai || 'วาง API key ที่นี่';
+  $('#kHuggingface').placeholder = STATE.keys.huggingface || 'hf_...';
+}
+
+/* ---------------- resolve + download ---------------- */
+async function doResolve() {
+  const url = $('#url').value.trim();
+  if (!url) return;
+  $('#btnResolve').disabled = true;
+  show('#dlMsg', 'info', 'กำลังตรวจสอบลิงก์...');
+  try {
+    RESOLVED = await post('/api/resolve', {url});
+    $('#dlMsg').className = 'msg';
+    $('#resolved').classList.remove('hide');
+    $('#rvTitle').textContent = RESOLVED.title;
+    $('#rvSub').textContent = RESOLVED.subtitle;
+    const img = $('#rvImg');
+    if (RESOLVED.preview) { img.src = RESOLVED.preview; img.classList.remove('hide'); }
+    else img.classList.add('hide');
+    $('#rvTags').innerHTML = [
+      `<span class="tag">${esc(RESOLVED.source)}</span>`,
+      RESOLVED.page ? `<a class="tag" href="${esc(RESOLVED.page)}" target="_blank" rel="noopener">เปิดหน้าต้นทาง ↗</a>` : '',
+      ...(RESOLVED.trigger_words || []).slice(0, 8).map(w => `<span class="tag">trigger: ${esc(w)}</span>`)
+    ].join('');
+    $('#rvFile').innerHTML = RESOLVED.choices.map((c, i) =>
+      `<option value="${i}">${esc(c.filename)} · ${esc(c.size_h)}${c.note ? ' · ' + esc(c.note) : ''}</option>`).join('');
+    $('#rvFile').onchange = syncChoice;
+    syncChoice();
+  } catch (e) {
+    $('#resolved').classList.add('hide');
+    show('#dlMsg', 'err', e.message);
+  } finally { $('#btnResolve').disabled = false; }
+}
+function syncChoice() {
+  const c = RESOLVED.choices[+$('#rvFile').value];
+  $('#rvName').value = c.filename;
+  $('#rvFolder').value = c.folder || RESOLVED.folder;
+}
+$('#btnResolve').onclick = doResolve;
+$('#url').addEventListener('keydown', e => { if (e.key === 'Enter') doResolve(); });
+
+$('#btnDownload').onclick = async () => {
+  const c = RESOLVED.choices[+$('#rvFile').value];
+  try {
+    await post('/api/download', {
+      url: c.url, folder: $('#rvFolder').value, filename: $('#rvName').value,
+      size: c.size, source: RESOLVED.source, title: RESOLVED.title,
+      overwrite: $('#rvOverwrite').checked
+    });
+    show('#dlMsg', 'ok', 'เพิ่มเข้าคิวแล้ว: ' + $('#rvName').value);
+    refreshJobs();
+  } catch (e) { show('#dlMsg', 'err', e.message); }
+};
+
+$('#btnAllFiles').onclick = async () => {
+  let n = 0, err = '';
+  for (const c of RESOLVED.choices) {
+    try {
+      await post('/api/download', {
+        url: c.url, folder: c.folder || RESOLVED.folder, filename: c.filename,
+        size: c.size, source: RESOLVED.source, title: RESOLVED.title,
+        overwrite: $('#rvOverwrite').checked
+      });
+      n++;
+    } catch (e) { err = e.message; }
+  }
+  show('#dlMsg', n ? 'ok' : 'err', n ? `เพิ่มเข้าคิว ${n} ไฟล์` : err);
+  refreshJobs();
+};
+
+/* ---------------- jobs ---------------- */
+async function refreshJobs() {
+  let data;
+  try { data = await api('/api/jobs'); } catch (e) { return; }
+  const jobs = data.jobs;
+  if (!jobs.length) { $('#jobs').innerHTML = '<div class="empty">ยังไม่มีงานดาวน์โหลด</div>'; return; }
+  $('#jobs').innerHTML = `<table><thead><tr>
+      <th>ไฟล์</th><th>ปลายทาง</th><th>สถานะ</th><th class="num">ขนาด</th>
+      <th class="num">ความเร็ว</th><th class="num">เหลือ</th><th></th></tr></thead><tbody>` +
+    jobs.map(j => `<tr>
+      <td style="max-width:300px">
+        <div style="word-break:break-all">${esc(j.filename)}</div>
+        ${j.status === 'downloading' || j.status === 'queued'
+          ? `<div class="bar"><div style="width:${j.percent}%"></div></div>` : ''}
+        ${j.error ? `<div style="color:var(--danger);font-size:11.5px;margin-top:3px">${esc(j.error)}</div>` : ''}
+      </td>
+      <td style="color:var(--muted);font-size:12px">${esc(j.folder)}</td>
+      <td><span class="st ${j.status}">${j.status}${j.status === 'downloading' ? ' ' + j.percent + '%' : ''}</span></td>
+      <td class="num">${esc(j.downloaded_h)} / ${esc(j.total_h)}</td>
+      <td class="num">${esc(j.speed_h)}</td>
+      <td class="num">${esc(j.eta_h)}</td>
+      <td class="num">${(j.status === 'downloading' || j.status === 'queued')
+        ? `<button class="btn danger mini" onclick="cancelJob('${j.id}')">ยกเลิก</button>` : ''}</td>
+    </tr>`).join('') + '</tbody></table>';
+}
+window.cancelJob = async id => { await post('/api/jobs/' + id + '/cancel'); refreshJobs(); };
+$('#btnClearJobs').onclick = async () => { await post('/api/jobs/clear'); refreshJobs(); };
+
+/* ---------------- catalog ---------------- */
+async function loadCatalog() {
+  const cat = await api('/api/catalog');
+  $('#quick').innerHTML = cat.quick.map(q => `
+    <div class="item ${q.recommended ? 'star' : ''}">
+      <h4>${esc(q.name)} ${q.recommended ? '<span class="badge">แนะนำ</span>' : ''}</h4>
+      <p>${esc(q.desc)}</p>
+      <div class="foot">
+        <span style="color:var(--muted);font-size:12px">${esc(q.size_h)}</span>
+        <button class="btn mini" onclick="installIds(['${q.id}'])">ติดตั้ง</button>
+      </div>
+    </div>`).join('');
+
+  $('#groups').innerHTML = cat.groups.map(g => `
+    <div class="card">
+      <h2>${esc(g.name)}</h2>
+      <p class="hint">${esc(g.note || '')}</p>
+      <div class="grid">${g.items.map(it => `
+        <div class="item">
+          <h4>${esc(it.name)} ${it.installed ? '<span class="badge">ติดตั้งแล้ว</span>' : ''}</h4>
+          <p>${esc(it.desc || '')}</p>
+          <div class="foot">
+            <span style="color:var(--muted);font-size:12px">${esc(it.size_h)} → ${esc(it.dest)}</span>
+            <button class="btn mini ${it.installed ? 'ghost' : ''}" onclick="installIds(['${it.id}'])">
+              ${it.installed ? 'โหลดซ้ำ' : 'ติดตั้ง'}</button>
+          </div>
+        </div>`).join('')}</div>
+    </div>`).join('');
+}
+window.installIds = async ids => {
+  try {
+    const r = await post('/api/catalog/install', {ids});
+    alert(r.jobs.length ? `เพิ่มเข้าคิว ${r.jobs.length} ไฟล์ — ดูความคืบหน้าที่แท็บ "ดาวน์โหลดจากลิงก์"`
+                        : 'ไฟล์ทั้งหมดมีอยู่แล้ว');
+    refreshJobs();
+  } catch (e) { alert('ผิดพลาด: ' + e.message); }
+};
+
+/* ---------------- files ---------------- */
+let FILES = [];
+async function loadFiles() {
+  const d = await api('/api/files');
+  FILES = d.files;
+  $('#filesHint').textContent = `${d.count} ไฟล์ · รวม ${d.total_h} · ${STATE ? STATE.models_dir : ''}`;
+  renderFiles();
+}
+function renderFiles() {
+  const f = $('#fFolder').value, q = $('#fSearch').value.toLowerCase();
+  const rows = FILES.filter(x => (!f || x.folder === f) && (!q || x.name.toLowerCase().includes(q)));
+  if (!rows.length) { $('#filesTable').innerHTML = '<div class="empty">ไม่พบไฟล์</div>'; return; }
+  $('#filesTable').innerHTML = `<table><thead><tr>
+      <th>ชื่อไฟล์</th><th>โฟลเดอร์</th><th class="num">ขนาด</th><th class="num">แก้ไขล่าสุด</th><th></th>
+    </tr></thead><tbody>` + rows.map(x => `<tr>
+      <td style="word-break:break-all">${esc(x.rel)}</td>
+      <td style="color:var(--muted)">${esc(x.folder)}</td>
+      <td class="num">${esc(x.size_h)}</td>
+      <td class="num">${new Date(x.mtime * 1000).toLocaleString('th-TH')}</td>
+      <td class="num"><button class="btn danger mini"
+        onclick="delFile('${esc(x.folder)}','${esc(x.rel).replace(/'/g, "\\'")}')">ลบ</button></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+$('#fFolder').onchange = renderFiles;
+$('#fSearch').oninput = renderFiles;
+window.delFile = async (folder, rel) => {
+  if (!confirm(`ลบ ${rel} ออกจาก ${folder} ?\nลบแล้วกู้คืนไม่ได้`)) return;
+  try {
+    const r = await post('/api/files/delete', {folder, rel});
+    alert('ลบแล้ว คืนพื้นที่ ' + r.freed_h);
+    loadFiles(); loadState();
+  } catch (e) { alert('ลบไม่สำเร็จ: ' + e.message); }
+};
+
+/* ---------------- keys ---------------- */
+$$('[data-save]').forEach(b => b.onclick = async () => {
+  const p = b.dataset.save;
+  const cap = p.charAt(0).toUpperCase() + p.slice(1);
+  const el = $('#k' + cap), box = '#k' + cap + 'Msg';
+  const val = el.value.trim();
+  if (!val) {
+    if (!STATE.has_keys[p]) { show(box, 'err', 'ยังไม่ได้ใส่คีย์'); return; }
+    if (!confirm('ช่องว่างเปล่า = ลบคีย์ที่บันทึกไว้ ยืนยันหรือไม่?')) return;
+  }
+  try {
+    await post('/api/keys', {[p]: val});
+    el.value = '';
+    show(box, 'ok', val ? 'บันทึกแล้ว' : 'ลบคีย์แล้ว');
+    loadState();
+  } catch (e) { show(box, 'err', e.message); }
+});
+$$('[data-test]').forEach(b => b.onclick = async () => {
+  const p = b.dataset.test;
+  const box = '#k' + p.charAt(0).toUpperCase() + p.slice(1) + 'Msg';
+  show(box, 'info', 'กำลังทดสอบ...');
+  const r = await post('/api/keys/test', {provider: p});
+  show(box, r.ok ? 'ok' : 'err', r.message);
+});
+
+/* ---------------- system ---------------- */
+async function renderSys() {
+  await loadState();
+  const comfy = await api('/api/comfy/status').catch(() => ({up: false}));
+  const d = STATE.disk;
+  $('#sysInfo').innerHTML = `<table><tbody>
+    <tr><td>ComfyUI</td><td>${comfy.up ? '<span class="st done">ทำงานอยู่</span>' : '<span class="st error">ไม่ตอบสนอง</span>'}
+      ${STATE.urls.comfyui ? ` <a href="${esc(STATE.urls.comfyui)}" target="_blank" rel="noopener">เปิด ↗</a>` : ''}</td></tr>
+    <tr><td>JupyterLab</td><td>${STATE.urls.jupyter ? `<a href="${esc(STATE.urls.jupyter)}" target="_blank" rel="noopener">เปิด ↗</a>` : 'พอร์ต 8888'}</td></tr>
+    <tr><td>โฟลเดอร์โมเดล</td><td><code>${esc(STATE.models_dir)}</code></td></tr>
+    <tr><td>ดิสก์</td><td>ใช้ไป ${esc(d.used_h)} / ${esc(d.total_h)} (${d.percent}%) · ว่าง ${esc(d.free_h)}
+      <div class="bar"><div style="width:${d.percent}%"></div></div></td></tr>
+    <tr><td>ตัวโหลด</td><td>${STATE.aria2 ? 'aria2c (16 connections)' : 'httpx streaming'}</td></tr>
+    ${STATE.gpus.map(g => `<tr><td>GPU</td><td>${esc(g.name)} · VRAM ${esc(g.vram_used)}/${esc(g.vram_total)} · ใช้งาน ${esc(g.util)} · ${esc(g.temp)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+$('#btnRestartComfy').onclick = async () => {
+  show('#sysMsg', 'info', 'กำลังรีสตาร์ท ComfyUI...');
+  const r = await post('/api/service/comfyui/restart');
+  show('#sysMsg', r.ok ? 'ok' : 'err', r.output || 'เรียบร้อย — รอ ~20 วินาที');
+};
+$('#btnRestartJup').onclick = async () => {
+  show('#sysMsg', 'info', 'กำลังรีสตาร์ท JupyterLab...');
+  const r = await post('/api/service/jupyter/restart');
+  show('#sysMsg', r.ok ? 'ok' : 'err', r.output || 'เรียบร้อย');
+};
+$('#btnLog').onclick = async () => {
+  const s = $('#logPick').value;
+  $('#logBox').textContent = 'กำลังโหลด...';
+  const res = await fetch('/api/logs/' + s + '?lines=400', {credentials: 'same-origin'});
+  $('#logBox').textContent = await res.text();
+  $('#logBox').scrollTop = $('#logBox').scrollHeight;
+};
+
+/* ---------------- boot ---------------- */
+loadState().then(refreshJobs);
+setInterval(refreshJobs, 1000);
+setInterval(loadState, 15000);
+</script>
+</body>
+</html>

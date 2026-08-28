@@ -1,0 +1,86 @@
+name: build-and-push
+
+# กด Run ด้วยมือจากแท็บ Actions หรือ push โค้ดขึ้น main ก็ build อัตโนมัติ
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: "CUDA variant"
+        type: choice
+        default: cu129
+        options: [cu129, cu128, cu130]
+      version:
+        description: "แท็กเวอร์ชัน"
+        type: string
+        default: "1.0"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "dashboard/**"
+      - "scripts/**"
+      - "supervisor/**"
+      - ".github/workflows/build-image.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: เคลียร์พื้นที่ดิสก์ (runner มีให้แค่ ~14 GB)
+        run: |
+          echo "ก่อนเคลียร์:"; df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost /usr/share/swift
+          sudo docker image prune -af
+          echo "หลังเคลียร์:"; df -h /
+
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: ล็อกอิน Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: เลือก base image ตาม variant
+        id: cfg
+        run: |
+          VARIANT="${{ inputs.variant || 'cu129' }}"
+          VERSION="${{ inputs.version || '1.0' }}"
+          case "$VARIANT" in
+            cu128) CUDA_IMAGE=nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04; TORCH=2.11.0 ;;
+            cu129) CUDA_IMAGE=nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04; TORCH=2.13.0 ;;
+            cu130) CUDA_IMAGE=nvidia/cuda:13.0.1-cudnn-runtime-ubuntu24.04; TORCH=2.13.0 ;;
+          esac
+          {
+            echo "variant=$VARIANT"
+            echo "cuda_image=$CUDA_IMAGE"
+            echo "torch=$TORCH"
+            echo "tag=${{ secrets.DOCKERHUB_USERNAME }}/comfyui-krea2:${VERSION}-${VARIANT}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build และ push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.cfg.outputs.tag }}
+          build-args: |
+            CUDA_IMAGE=${{ steps.cfg.outputs.cuda_image }}
+            TORCH_CHANNEL=${{ steps.cfg.outputs.variant }}
+            TORCH_VERSION=${{ steps.cfg.outputs.torch }}
+          provenance: false
+
+      - name: สรุปผล
+        run: |
+          echo "### พร้อมใช้แล้ว" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "เอาบรรทัดนี้ไปวางในช่อง **Image Path:Tag** ของ Vast.ai template" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.cfg.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

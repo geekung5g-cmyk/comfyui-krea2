@@ -1,0 +1,18 @@
+# runtime / local test data
+data/
+*.log
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+
+# editors / os
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# windows env-var expansion accidents (Git Bash vs cmd)
+%SystemDrive%/
+%*%/

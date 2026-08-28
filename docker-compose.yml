@@ -1,0 +1,32 @@
+# Local smoke test only. On Vast.ai you use the template, not compose.
+#   docker compose up --build
+services:
+  comfyui:
+    build:
+      context: .
+      args:
+        CUDA_IMAGE: nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04
+        TORCH_CHANNEL: cu129
+        TORCH_VERSION: "2.13.0"
+    image: comfyui-krea2:local
+    ports:
+      - "8188:8188"   # ComfyUI
+      - "8189:8189"   # Model dashboard
+      - "8888:8888"   # JupyterLab
+    environment:
+      DASHBOARD_TOKEN: "changeme-dashboard"
+      JUPYTER_TOKEN: "changeme-jupyter"
+      AUTO_INSTALL: "krea2-turbo"      # "none" to skip the 18.6 GB first-boot download
+      # CIVITAI_TOKEN: ""
+      # HF_TOKEN: ""
+      # COMFY_ARGS: "--reserve-vram 1.0"
+    volumes:
+      - ./data:/workspace
+    shm_size: "8gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

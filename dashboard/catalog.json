@@ -1,0 +1,389 @@
+{
+  "bundles": {
+    "krea2-turbo": [
+      "krea2-turbo-fp8",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-turbo-nvfp4": [
+      "krea2-turbo-nvfp4",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-turbo-bf16": [
+      "krea2-turbo-bf16",
+      "qwen3vl-4b-bf16",
+      "qwen-image-vae"
+    ],
+    "krea2-raw": [
+      "krea2-raw-fp8",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-style-ref": [
+      "krea2-turbo-int8",
+      "krea2-style-reference",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-styles": [
+      "krea2-lora-darkbrush",
+      "krea2-lora-dotmatrix",
+      "krea2-lora-kidsdrawing",
+      "krea2-lora-neondrip",
+      "krea2-lora-rainywindow",
+      "krea2-lora-retroanime",
+      "krea2-lora-softwatercolor",
+      "krea2-lora-sunsetblur",
+      "krea2-lora-vintagetarot"
+    ],
+    "upscalers": [
+      "upscale-4x-ultrasharp",
+      "upscale-4x-nmkd-siax"
+    ],
+    "krea2-turbo-mxfp8": [
+      "krea2-turbo-mxfp8",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-raw-int8": [
+      "krea2-raw-int8",
+      "qwen3vl-4b-fp8",
+      "qwen-image-vae"
+    ],
+    "krea2-all-loras": [
+      "krea2-style-reference",
+      "krea2-turbo-lora-r64",
+      "krea2-lora-darkbrush",
+      "krea2-lora-dotmatrix",
+      "krea2-lora-kidsdrawing",
+      "krea2-lora-neondrip",
+      "krea2-lora-rainywindow",
+      "krea2-lora-retroanime",
+      "krea2-lora-softwatercolor",
+      "krea2-lora-sunsetblur",
+      "krea2-lora-vintagetarot"
+    ]
+  },
+  "quick": [
+    {
+      "id": "krea2-turbo",
+      "name": "Krea 2 Turbo (FP8) - ชุดพร้อมใช้",
+      "desc": "diffusion + text encoder + VAE ครบชุด · 8 steps · เหมาะกับ 24-32 GB VRAM",
+      "size_h": "~17.4 GB",
+      "recommended": true
+    },
+    {
+      "id": "krea2-turbo-nvfp4",
+      "name": "Krea 2 Turbo (NVFP4) - เฉพาะ RTX 50xx",
+      "desc": "เล็กและเร็วที่สุด ใช้ FP4 engine ของ Blackwell เท่านั้น (5090/5080)",
+      "size_h": "~12.3 GB"
+    },
+    {
+      "id": "krea2-turbo-mxfp8",
+      "name": "Krea 2 Turbo (MXFP8) - RTX 50xx",
+      "desc": "MXFP8 microscaling ของ Blackwell · คุณภาพใกล้ bf16 ขนาดเท่า fp8",
+      "size_h": "~17.7 GB"
+    },
+    {
+      "id": "krea2-raw",
+      "name": "Krea 2 RAW (FP8) - ชุดพร้อมใช้",
+      "desc": "โมเดลต้นฉบับ 52 steps คุณภาพสูงสุด เหมาะกับงาน fine-tune / LoRA",
+      "size_h": "~17.4 GB"
+    },
+    {
+      "id": "krea2-turbo-bf16",
+      "name": "Krea 2 Turbo (BF16) - เต็มความละเอียด",
+      "desc": "ต้องการ VRAM 48 GB+ หรือ RAM offload เยอะ",
+      "size_h": "~33.0 GB"
+    },
+    {
+      "id": "krea2-style-ref",
+      "name": "Style Reference workflow",
+      "desc": "int8_convrot + style reference LoRA สำหรับส่งภาพอ้างอิงสไตล์",
+      "size_h": "~18.1 GB"
+    },
+    {
+      "id": "krea2-styles",
+      "name": "Krea 2 Style LoRA ทั้งหมด (9 ตัว)",
+      "desc": "darkbrush, dotmatrix, kidsdrawing, neondrip, rainywindow, retroanime, softwatercolor, sunsetblur, vintagetarot",
+      "size_h": "~3.9 GB"
+    },
+    {
+      "id": "upscalers",
+      "name": "Upscaler ยอดนิยม",
+      "desc": "4x-UltraSharp + 4x_NMKD-Siax",
+      "size_h": "~128 MB"
+    }
+  ],
+  "groups": [
+    {
+      "id": "krea2-diffusion",
+      "name": "Krea 2 · Diffusion models",
+      "note": "เลือกอย่างน้อย 1 ตัว ลงใน models/diffusion_models",
+      "items": [
+        {
+          "id": "krea2-turbo-fp8",
+          "name": "krea2_turbo_fp8_scaled",
+          "desc": "แนะนำ · 8 steps · รันได้บน 16-24 GB VRAM",
+          "dest": "diffusion_models",
+          "filename": "krea2_turbo_fp8_scaled.safetensors",
+          "bytes": 13141730784,
+          "size_h": "12.24 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_fp8_scaled.safetensors?download=true"
+        },
+        {
+          "id": "krea2-turbo-mxfp8",
+          "name": "krea2_turbo_mxfp8",
+          "desc": "RTX 50xx (Blackwell) · MXFP8 microscaling · คุณภาพใกล้ bf16 แต่ขนาดเท่า fp8",
+          "dest": "diffusion_models",
+          "filename": "krea2_turbo_mxfp8.safetensors",
+          "bytes": 13532318080,
+          "size_h": "12.60 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_mxfp8.safetensors?download=true"
+        },
+        {
+          "id": "krea2-turbo-nvfp4",
+          "name": "krea2_turbo_nvfp4",
+          "desc": "RTX 50xx เท่านั้น · เล็กที่สุด เร็วที่สุด",
+          "dest": "diffusion_models",
+          "filename": "krea2_turbo_nvfp4.safetensors",
+          "bytes": 7673668448,
+          "size_h": "7.15 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_nvfp4.safetensors?download=true"
+        },
+        {
+          "id": "krea2-turbo-int8",
+          "name": "krea2_turbo_int8_convrot",
+          "desc": "ใช้กับ Style Reference workflow",
+          "dest": "diffusion_models",
+          "filename": "krea2_turbo_int8_convrot.safetensors",
+          "bytes": 13492686496,
+          "size_h": "12.57 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_int8_convrot.safetensors?download=true"
+        },
+        {
+          "id": "krea2-turbo-bf16",
+          "name": "krea2_turbo_bf16",
+          "desc": "ความละเอียดเต็ม · ต้องการ VRAM สูง",
+          "dest": "diffusion_models",
+          "filename": "krea2_turbo_bf16.safetensors",
+          "bytes": 26283332608,
+          "size_h": "24.48 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_bf16.safetensors?download=true"
+        },
+        {
+          "id": "krea2-raw-fp8",
+          "name": "krea2_raw_fp8_scaled",
+          "desc": "RAW 52 steps · ฐานสำหรับเทรน LoRA",
+          "dest": "diffusion_models",
+          "filename": "krea2_raw_fp8_scaled.safetensors",
+          "bytes": 13141730784,
+          "size_h": "12.24 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_raw_fp8_scaled.safetensors?download=true"
+        },
+        {
+          "id": "krea2-raw-int8",
+          "name": "krea2_raw_int8_convrot",
+          "desc": "RAW แบบ int8 · ใช้กับ Style Reference workflow ฝั่ง RAW",
+          "dest": "diffusion_models",
+          "filename": "krea2_raw_int8_convrot.safetensors",
+          "bytes": 13492686496,
+          "size_h": "12.57 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_raw_int8_convrot.safetensors?download=true"
+        },
+        {
+          "id": "krea2-raw-bf16",
+          "name": "krea2_raw_bf16",
+          "desc": "RAW ความละเอียดเต็ม",
+          "dest": "diffusion_models",
+          "filename": "krea2_raw_bf16.safetensors",
+          "bytes": 26283332608,
+          "size_h": "24.48 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_raw_bf16.safetensors?download=true"
+        }
+      ]
+    },
+    {
+      "id": "krea2-support",
+      "name": "Krea 2 · Text encoder + VAE (จำเป็น)",
+      "note": "ต้องมีทั้งคู่ ไม่งั้น workflow จะรันไม่ผ่าน",
+      "items": [
+        {
+          "id": "qwen3vl-4b-fp8",
+          "name": "qwen3vl_4b_fp8_scaled",
+          "desc": "Text encoder · แนะนำ",
+          "dest": "text_encoders",
+          "filename": "qwen3vl_4b_fp8_scaled.safetensors",
+          "bytes": 5242467968,
+          "size_h": "4.88 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/text_encoders/qwen3vl_4b_fp8_scaled.safetensors?download=true"
+        },
+        {
+          "id": "qwen3vl-4b-bf16",
+          "name": "qwen3vl_4b_bf16",
+          "desc": "Text encoder ความละเอียดเต็ม",
+          "dest": "text_encoders",
+          "filename": "qwen3vl_4b_bf16.safetensors",
+          "bytes": 8875719384,
+          "size_h": "8.27 GB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/text_encoders/qwen3vl_4b_bf16.safetensors?download=true"
+        },
+        {
+          "id": "qwen-image-vae",
+          "name": "qwen_image_vae",
+          "desc": "VAE (ใช้ร่วมกับ Qwen-Image)",
+          "dest": "vae",
+          "filename": "qwen_image_vae.safetensors",
+          "bytes": 253806246,
+          "size_h": "242 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/vae/qwen_image_vae.safetensors?download=true"
+        }
+      ]
+    },
+    {
+      "id": "krea2-loras",
+      "name": "Krea 2 · LoRA ทางการ",
+      "note": "ลงใน models/loras",
+      "items": [
+        {
+          "id": "krea2-style-reference",
+          "name": "krea2_style_reference",
+          "desc": "ส่งภาพอ้างอิงสไตล์เข้าโมเดล",
+          "dest": "loras",
+          "filename": "krea2_style_reference.safetensors",
+          "bytes": 457111760,
+          "size_h": "436 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_style_reference.safetensors?download=true"
+        },
+        {
+          "id": "krea2-turbo-lora-r64",
+          "name": "krea2_turbo_lora_rank_64_bf16",
+          "desc": "แปลง RAW ให้เป็น Turbo (8 steps)",
+          "dest": "loras",
+          "filename": "krea2_turbo_lora_rank_64_bf16.safetensors",
+          "bytes": 469423778,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_turbo_lora_rank_64_bf16.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-darkbrush",
+          "name": "krea2_darkbrush",
+          "desc": "สไตล์ภาพวาดโทนมืด",
+          "dest": "loras",
+          "filename": "krea2_darkbrush.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_darkbrush.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-dotmatrix",
+          "name": "krea2_dotmatrix",
+          "desc": "สไตล์จุดพิกเซล",
+          "dest": "loras",
+          "filename": "krea2_dotmatrix.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_dotmatrix.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-kidsdrawing",
+          "name": "krea2_kidsdrawing",
+          "desc": "สไตล์ภาพวาดเด็ก",
+          "dest": "loras",
+          "filename": "krea2_kidsdrawing.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_kidsdrawing.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-neondrip",
+          "name": "krea2_neondrip",
+          "desc": "สไตล์นีออนหยด",
+          "dest": "loras",
+          "filename": "krea2_neondrip.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_neondrip.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-rainywindow",
+          "name": "krea2_rainywindow",
+          "desc": "สไตล์หน้าต่างวันฝนตก",
+          "dest": "loras",
+          "filename": "krea2_rainywindow.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_rainywindow.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-retroanime",
+          "name": "krea2_retroanime",
+          "desc": "สไตล์อนิเมะยุค 90",
+          "dest": "loras",
+          "filename": "krea2_retroanime.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_retroanime.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-softwatercolor",
+          "name": "krea2_softwatercolor",
+          "desc": "สไตล์สีน้ำนุ่ม",
+          "dest": "loras",
+          "filename": "krea2_softwatercolor.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_softwatercolor.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-sunsetblur",
+          "name": "krea2_sunsetblur",
+          "desc": "สไตล์แสงพระอาทิตย์ตกฟุ้ง",
+          "dest": "loras",
+          "filename": "krea2_sunsetblur.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_sunsetblur.safetensors?download=true"
+        },
+        {
+          "id": "krea2-lora-vintagetarot",
+          "name": "krea2_vintagetarot",
+          "desc": "สไตล์ไพ่ทาโรต์วินเทจ",
+          "dest": "loras",
+          "filename": "krea2_vintagetarot.safetensors",
+          "bytes": 469291992,
+          "size_h": "448 MB",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/loras/krea2_vintagetarot.safetensors?download=true"
+        }
+      ]
+    },
+    {
+      "id": "utility",
+      "name": "Utility",
+      "note": "Upscaler ที่ใช้บ่อย",
+      "items": [
+        {
+          "id": "upscale-4x-ultrasharp",
+          "name": "4x-UltraSharp",
+          "desc": "อัปสเกลคมชัดทั่วไป",
+          "dest": "upscale_models",
+          "filename": "4x-UltraSharp.pth",
+          "bytes": 66961958,
+          "size_h": "64 MB",
+          "url": "https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.pth?download=true"
+        },
+        {
+          "id": "upscale-4x-nmkd-siax",
+          "name": "4x_NMKD-Siax_200k",
+          "desc": "อัปสเกลภาพคน/ผิว",
+          "dest": "upscale_models",
+          "filename": "4x_NMKD-Siax_200k.pth",
+          "bytes": 66957746,
+          "size_h": "64 MB",
+          "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth?download=true"
+        }
+      ]
+    }
+  ]
+}
