@@ -68,8 +68,8 @@ vast-comfyui-krea2/
 | `PUBLIC_KEY` | — | ใส่ ssh public key แล้ว sshd จะเปิดที่พอร์ต 22 |
 | `PROVISIONING_SCRIPT` | — | URL ของสคริปต์ที่จะรันตอนบูต (ลง custom node เพิ่ม) |
 
-ค่าที่ `AUTO_INSTALL` รับได้: `krea2-turbo` · `krea2-turbo-nvfp4` · `krea2-turbo-bf16` ·
-`krea2-raw` · `krea2-style-ref` · `krea2-styles` · `upscalers` · `none`
+ค่าที่ `AUTO_INSTALL` รับได้: `krea2-turbo` · `krea2-turbo-nvfp4` · `krea2-turbo-mxfp8` · `krea2-turbo-bf16` ·
+`krea2-raw` · `krea2-raw-int8` · `krea2-style-ref` · `krea2-styles` · `krea2-all-loras` · `upscalers` · `none`
 (ใส่หลายค่าคั่นด้วยคอมมาได้ เช่น `krea2-turbo,upscalers`)
 
 ---
