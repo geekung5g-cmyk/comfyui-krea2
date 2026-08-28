@@ -19,6 +19,38 @@ from core import MAX_PARALLEL, human, resolve_target
 
 ARIA2 = shutil.which("aria2c")
 
+# aria2c exit codes worth translating - its raw output is a wall of boilerplate
+# that buries the actual cause.
+ARIA2_EXIT = {
+    1:  "ดาวน์โหลดไม่สำเร็จ (ข้อผิดพลาดทั่วไป)",
+    3:  "ไม่พบไฟล์ปลายทาง (404) - ลิงก์อาจหมดอายุหรือถูกลบ",
+    4:  "เซิร์ฟเวอร์ตอบ 404 หลายครั้ง - ลิงก์ไม่ถูกต้อง",
+    6:  "การเชื่อมต่อถูกตัด (network error)",
+    8:  "เซิร์ฟเวอร์ไม่รองรับการ resume",
+    9:  "พื้นที่ดิสก์ไม่พอ",
+    19: "แปลงชื่อโดเมนไม่ได้ (DNS)",
+    22: "เซิร์ฟเวอร์ตอบ header ผิดรูปแบบ",
+    24: "เซิร์ฟเวอร์ปฏิเสธ 401 Unauthorized - ต้องใส่ API key ในแท็บ API Keys "
+        "และลิงก์ต้องเป็นโดเมนทางการ civitai.com (ลิงก์มิเรอร์จะไม่ได้รับคีย์)",
+    29: "เซิร์ฟเวอร์ไม่ว่าง (503) - ลองใหม่อีกครั้ง",
+}
+
+_ARIA2_NOISE = ("status legend", "see the log file", "option in help/man",
+                "will resume download")
+
+
+def _clean_aria2_tail(lines):
+    """Drop aria2's Status Legend boilerplate so the real error stays visible."""
+    out = []
+    for ln in lines:
+        stripped = ln.strip()
+        if not stripped or set(stripped) <= set("=+-"):
+            continue
+        if any(n in stripped.lower() for n in _ARIA2_NOISE):
+            continue
+        out.append(stripped)
+    return out
+
 
 class Job:
     __slots__ = ("id", "url", "folder", "filename", "total", "downloaded", "status",
@@ -235,7 +267,9 @@ class DownloadManager:
         rc = proc.wait()
         job._proc = None
         if rc != 0 and not job._cancel:
-            raise RuntimeError("aria2c exit %d\n%s" % (rc, "\n".join(tail[-6:])))
+            why = ARIA2_EXIT.get(rc, "aria2c exit %d" % rc)
+            detail = "\n".join(_clean_aria2_tail(tail)[-4:])
+            raise RuntimeError(why + ("\n" + detail if detail else ""))
 
     def _httpx(self, job: Job, target: pathlib.Path, headers: dict) -> None:
         import httpx
@@ -252,6 +286,11 @@ class DownloadManager:
                     pos = 0
                     part.unlink(missing_ok=True)
                     raise RuntimeError("ช่วงไฟล์ไม่ถูกต้อง ลองใหม่อีกครั้ง")
+                if r.status_code in (401, 403):
+                    raise RuntimeError(
+                        "เซิร์ฟเวอร์ปฏิเสธ HTTP %d - ต้องใส่ API key ในแท็บ API Keys "
+                        "และลิงก์ต้องเป็นโดเมนทางการ civitai.com / huggingface.co"
+                        % r.status_code)
                 if r.status_code >= 400:
                     raise RuntimeError("HTTP %d จากเซิร์ฟเวอร์ต้นทาง" % r.status_code)
                 if r.status_code == 200:

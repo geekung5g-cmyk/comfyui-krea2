@@ -33,6 +33,43 @@ WEIGHT_EXT = (".safetensors", ".ckpt", ".pt", ".pth", ".bin", ".gguf",
 AIR_RE = re.compile(r"^urn:air:[^:]*:([^:]*):civitai:(\d+)(?:@(\d+))?", re.I)
 REPO_RE = re.compile(r"^[A-Za-z0-9][\w.\-]*/[\w.\-]+$")
 
+# Hosts we will attach the stored Civitai API key to. Official only - a key sent
+# to a mirror is a key handed to whoever runs that mirror.
+CIVITAI_HOSTS = {"civitai.com", "www.civitai.com"}
+# Community mirrors that serve the same API. We recognise them so the link still
+# resolves, but we rewrite them to the official host before sending any key.
+CIVITAI_MIRROR_HOSTS = {"civitai.red", "www.civitai.red", "civitai.work", "civitai.green"}
+HF_HOSTS = {"huggingface.co", "www.huggingface.co", "hf.co", "www.hf.co"}
+
+
+def _host(url: str) -> str:
+    try:
+        return (urllib.parse.urlparse(url).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
+def is_civitai(url: str) -> bool:
+    return _host(url) in CIVITAI_HOSTS or _host(url) in CIVITAI_MIRROR_HOSTS
+
+
+def is_hf(url: str) -> bool:
+    return _host(url) in HF_HOSTS
+
+
+def normalize_url(url: str) -> str:
+    """Rewrite a known Civitai mirror to the official host.
+
+    Keeps the API key on civitai.com and makes mirror links resolve properly
+    instead of falling through to the generic direct-link handler (which names
+    the file after the last URL segment - e.g. "3216359" with no extension).
+    """
+    host = _host(url)
+    if host in CIVITAI_MIRROR_HOSTS:
+        parsed = urllib.parse.urlparse(url)
+        return urllib.parse.urlunparse(parsed._replace(netloc="civitai.com"))
+    return url
+
 
 class ResolveError(Exception):
     pass
@@ -326,24 +363,32 @@ def resolve(url: str, keys: dict) -> dict:
         raise ResolveError("กรุณาวางลิงก์")
 
     low = url.lower()
-    if low.startswith("urn:air:") or "civitai.com" in low:
+    if low.startswith("urn:air:"):
+        return resolve_civitai(url, keys.get("civitai"))
+
+    url = normalize_url(url)
+    if is_civitai(url):
         return resolve_civitai(url, keys.get("civitai"))
 
     looks_like_repo = bool(REPO_RE.match(url))
     if not looks_like_repo and ":" in url and not low.startswith("http"):
         looks_like_repo = bool(REPO_RE.match(url.split(":", 1)[0]))
 
-    if "huggingface.co" in low or "hf.co/" in low or looks_like_repo:
+    if is_hf(url) or looks_like_repo:
         return resolve_hf(url, keys.get("huggingface"))
     return resolve_direct(url)
 
 
 def auth_headers(url: str, keys: dict) -> dict:
-    """Headers the downloader must send for this URL."""
-    low = url.lower()
+    """Headers the downloader must send for this URL.
+
+    Matched on hostname, not substring: the key must never ride along to a host
+    that merely happens to have "civitai.com" somewhere in its query string.
+    """
+    host = _host(url)
     headers = {"User-Agent": "comfyui-modelhub/1.0"}
-    if "civitai.com" in low and keys.get("civitai"):
+    if host in CIVITAI_HOSTS and keys.get("civitai"):
         headers["Authorization"] = "Bearer " + keys["civitai"]
-    elif ("huggingface.co" in low or "hf.co/" in low) and keys.get("huggingface"):
+    elif host in HF_HOSTS and keys.get("huggingface"):
         headers["Authorization"] = "Bearer " + keys["huggingface"]
     return headers

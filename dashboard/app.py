@@ -165,6 +165,11 @@ def api_download(payload: dict = Body(...)):
         raise HTTPException(400, "ต้องมี url, folder และ filename")
     if folder not in core.VALID_FOLDERS:
         raise HTTPException(400, "โฟลเดอร์ไม่ถูกต้อง: %s" % folder)
+    if not os.path.splitext(filename)[1]:
+        raise HTTPException(400,
+            "ชื่อไฟล์ '%s' ไม่มีนามสกุล - ComfyUI จะมองไม่เห็นไฟล์นี้ "
+            "ให้กด 'ตรวจสอบลิงก์' ก่อน ระบบจะดึงชื่อไฟล์จริงมาให้ "
+            "(หรือเติมนามสกุลเอง เช่น .safetensors)" % filename)
 
     keys = core.load_keys()
     if payload.get("overwrite") is not True:
